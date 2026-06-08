@@ -239,13 +239,14 @@ class _SentenceCard extends StatelessWidget {
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
+                runSpacing: 4,
                 children: [
                   const Text('Sep. verbs:', style: TextStyle(fontSize: 11)),
                   for (final sv in sentence.sepVerbs)
                     Chip(
                       label: Text('${sv.fullLemma}  (${sv.particle}+${sv.verbForm})',
-                          style: const TextStyle(fontSize: 11)),
-                      backgroundColor: const Color(0xFFE3F2FD),
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF90CAF9))),
+                      backgroundColor: const Color(0xFF0D47A1),
                       padding: EdgeInsets.zero,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -273,7 +274,7 @@ class _SentenceCard extends StatelessWidget {
                   final isSep = sepVerbSet.contains(t.form.toLowerCase());
                   return DataRow(
                     color: isSep
-                        ? WidgetStateProperty.all(const Color(0xFFFFF8E1))
+                        ? WidgetStateProperty.all(const Color(0xFF1A2F1A))
                         : null,
                     cells: [
                       DataCell(Text('${t.id}', style: const TextStyle(fontSize: 11))),
@@ -299,20 +300,33 @@ class _UposBadge extends StatelessWidget {
   final String upos;
   const _UposBadge({required this.upos});
 
-  static const _colors = {
-    'VERB': Color(0xFFE8F5E9), 'AUX':  Color(0xFFE8F5E9),
-    'NOUN': Color(0xFFE3F2FD), 'PROPN':Color(0xFFE3F2FD),
-    'ADJ':  Color(0xFFFFF9C4), 'ADV':  Color(0xFFFFF9C4),
-    'ADP':  Color(0xFFFCE4EC), 'DET':  Color(0xFFFCE4EC),
+  // (bg, fg) pairs — vivid enough for both dark and light themes
+  static const _palette = <String, (Color, Color)>{
+    'VERB':  (Color(0xFF1B5E20), Color(0xFF69F0AE)),
+    'AUX':   (Color(0xFF1B5E20), Color(0xFF69F0AE)),
+    'NOUN':  (Color(0xFF0D47A1), Color(0xFF82B1FF)),
+    'PROPN': (Color(0xFF0D47A1), Color(0xFF82B1FF)),
+    'ADJ':   (Color(0xFFE65100), Color(0xFFFFCC80)),
+    'ADV':   (Color(0xFFBF360C), Color(0xFFFFCC80)),
+    'ADP':   (Color(0xFF4A148C), Color(0xFFEA80FC)),
+    'DET':   (Color(0xFF4A148C), Color(0xFFEA80FC)),
+    'PRON':  (Color(0xFF880E4F), Color(0xFFFF80AB)),
+    'CCONJ': (Color(0xFF004D40), Color(0xFF64FFDA)),
+    'SCONJ': (Color(0xFF004D40), Color(0xFF64FFDA)),
+    'PART':  (Color(0xFF3E2723), Color(0xFFBCAAA4)),
+    'NUM':   (Color(0xFF1A237E), Color(0xFF80D8FF)),
+    'PUNCT': (Color(0xFF263238), Color(0xFF90A4AE)),
+    'SYM':   (Color(0xFF263238), Color(0xFF90A4AE)),
+    'X':     (Color(0xFF212121), Color(0xFFBDBDBD)),
   };
 
   @override
   Widget build(BuildContext context) {
-    final bg = _colors[upos] ?? const Color(0xFFF5F5F5);
+    final (bg, fg) = _palette[upos] ?? (const Color(0xFF37474F), const Color(0xFFB0BEC5));
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(3)),
-      child: Text(upos, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(4)),
+      child: Text(upos, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: fg)),
     );
   }
 }

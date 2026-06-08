@@ -4,7 +4,7 @@ project(udpipe_flutter LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "udpipe_flutter")
+set(BINARY_NAME "udpipe_app")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -110,6 +110,6 @@ install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   COMPONENT Runtime)
 
 # Copy udpipe_flutter.dll next to the executable.
-install(TARGETS udpipe_flutter
+install(TARGETS udpipe_ffi
   RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
   COMPONENT Runtime)
