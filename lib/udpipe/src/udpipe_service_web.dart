@@ -20,6 +20,10 @@ external JSString? _jsProcess(JSNumber handle, JSString text);
 @JS('udpipeWasmFree')
 external void _jsFree(JSNumber handle);
 
+/// Singleton service that wraps the UDPipe WASM module via JS interop.
+///
+/// The WASM module (`web/udpipe_ffi.wasm`) must be built with Emscripten
+/// before running the web target. See `make wasm` or `build_wasm.ps1`.
 class UDPipeService {
   UDPipeService._();
   static final UDPipeService _instance = UDPipeService._();

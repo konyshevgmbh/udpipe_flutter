@@ -1,7 +1,14 @@
 name: udpipe_flutter
-description: "Flutter FFI demo for UDPipe 1 — tokenization, POS tagging, dependency parsing."
-publish_to: 'none'
+description: Flutter library and demo app for UDPipe 1 — NLP tokenization, POS tagging and dependency parsing across 50+ languages, with native FFI on desktop/mobile and WebAssembly on the web.
 version: 0.1.0+1
+homepage: https://github.com/konyshevgmbh/udpipe_flutter
+repository: https://github.com/konyshevgmbh/udpipe_flutter
+issue_tracker: https://github.com/konyshevgmbh/udpipe_flutter/issues
+topics:
+  - nlp
+  - ffi
+  - text-processing
+  - linguistics
 
 environment:
   sdk: ^3.4.0
@@ -10,7 +17,6 @@ dependencies:
   flutter:
     sdk: flutter
   ffi: ^2.1.0
-  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:

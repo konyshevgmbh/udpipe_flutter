@@ -1,11 +1,21 @@
-// Parses CoNLL-U output from UDPipe into structured tokens.
-
+/// A single token from a CoNLL-U sentence produced by UDPipe.
 class UDToken {
+  /// 1-based token index within the sentence.
   final int    id;
+
+  /// Surface form as it appears in the input text.
   final String form;
+
+  /// Dictionary lemma.
   final String lemma;
+
+  /// Universal POS tag (VERB, NOUN, ADJ, …).
   final String upos;
+
+  /// Universal dependency relation (root, nsubj, obj, …).
   final String deprel;
+
+  /// [id] of the syntactic head token; 0 means root.
   final int    head;
 
   const UDToken({
@@ -18,11 +28,17 @@ class UDToken {
   });
 }
 
+/// A German separable verb detected in a sentence
+/// (e.g. *aussteigen* split into particle *aus* + verb stem *steigt*).
 class SepVerb {
-  /// Reconstructed full lemma: particle.toLowerCase() + verb.lemma
-  /// e.g. "aus" + "steigen" → "aussteigen"
+  /// Reconstructed full lemma: `particle.toLowerCase() + verb.lemma`,
+  /// e.g. `"aus"` + `"steigen"` → `"aussteigen"`.
   final String fullLemma;
+
+  /// Inflected verb form found in the sentence (e.g. `"steigt"`).
   final String verbForm;
+
+  /// Detached particle (e.g. `"aus"`).
   final String particle;
 
   const SepVerb({

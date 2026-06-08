@@ -7,6 +7,14 @@ import 'package:flutter/services.dart' hide Size;
 import 'udpipe_bindings.dart';
 import 'udpipe_types.dart';
 
+/// Singleton service that wraps the UDPipe native library via dart:ffi.
+///
+/// Usage:
+/// ```dart
+/// final svc = UDPipeService();
+/// await svc.init(modelId: 'gsd');
+/// final result = svc.process('Er steigt aus dem Bus aus.');
+/// ```
 class UDPipeService {
   UDPipeService._();
   static final UDPipeService _instance = UDPipeService._();
@@ -17,12 +25,20 @@ class UDPipeService {
   String?         _loadedModel;
   Future<void>    _initFuture = Future.value();
 
+  /// Current loading state. Listen to this notifier to react to state changes.
   final ValueNotifier<UDPipeStatus> status = ValueNotifier(UDPipeStatus.idle);
+
+  /// Human-readable error message when [status] is [UDPipeStatus.error].
   String? loadError;
 
+  /// Whether a model is loaded and [process] can be called.
   bool get isAvailable => _handle != null && _handle != nullptr;
+
+  /// Completes when the current [init] call finishes (or immediately if idle).
   Future<void> get whenReady => _initFuture;
 
+  /// Loads the model identified by [modelId] (one of [kUdpipeModels]).
+  /// Returns immediately if the requested model is already loaded.
   Future<void> init({String modelId = 'hdt'}) {
     if (_loadedModel == modelId && isAvailable) return Future.value();
     _initFuture = _load(modelId);
@@ -80,6 +96,10 @@ class UDPipeService {
     status.value = UDPipeStatus.ready;
   }
 
+  /// Runs UDPipe on [text] and returns the parsed result.
+  ///
+  /// Synchronous — runs on the calling isolate. For large batches prefer
+  /// [processAllBlocksAsync].
   UDPipeResult process(String text) {
     if (!isAvailable) return UDPipeResult.empty;
     final conllu = _bindings!.process(_handle!, text);
@@ -94,6 +114,8 @@ class UDPipeService {
     return splitUDPipeResultByBlocks(conllu, blocks);
   }
 
+  /// Processes [blocks] in a background isolate, yielding one [UDPipeResult]
+  /// per block. Keeps the UI thread free for large inputs.
   Future<List<UDPipeResult>> processAllBlocksAsync(List<String> blocks) async {
     if (!isAvailable) return List.filled(blocks.length, UDPipeResult.empty);
     if (kIsWeb) return processBatchPerBlock(blocks);

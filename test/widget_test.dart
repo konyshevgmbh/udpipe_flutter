@@ -1,30 +1,47 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:udpipe_flutter/main.dart';
+import 'package:udpipe_flutter/udpipe_flutter.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  const sample = '''# text = Er steigt aus dem Bus aus.
+1\tEr\ter\tPRON\t_\t_\t2\tnsubj\t_\t_
+2\tsteigt\tsteigen\tVERB\t_\t_\t0\troot\t_\t_
+3\taus\taus\tADP\t_\t_\t5\tcase\t_\t_
+4\tdem\tder\tDET\t_\t_\t5\tdet\t_\t_
+5\tBus\tBus\tNOUN\t_\t_\t2\tobl\t_\t_
+6\taus\taus\tADP\t_\t_\t2\tcompound:prt\t_\t_
+7\t.\t.\tPUNCT\t_\t_\t2\tpunct\t_\t_
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+''';
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  test('parseConlluSentences parses tokens correctly', () {
+    final sents = parseConlluSentences(sample);
+    expect(sents.length, 1);
+    expect(sents.first.text, 'Er steigt aus dem Bus aus.');
+    expect(sents.first.tokens.length, 7);
+    expect(sents.first.tokens[1].form, 'steigt');
+    expect(sents.first.tokens[1].upos, 'VERB');
+    expect(sents.first.tokens[1].head, 0);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('findSepVerbs detects compound:prt particle', () {
+    final sents = parseConlluSentences(sample);
+    final verbs = findSepVerbs(sents.first.tokens);
+    expect(verbs.length, 1);
+    expect(verbs.first.particle, 'aus');
+    expect(verbs.first.verbForm, 'steigt');
+    expect(verbs.first.fullLemma, 'aussteigen');
+  });
+
+  test('buildUDPipeResult returns empty for empty input', () {
+    final result = buildUDPipeResult('');
+    expect(result.sentences, isEmpty);
+  });
+
+  test('tokensByFormAll maps lower-case forms', () {
+    final sents = parseConlluSentences(sample);
+    final map = tokensByFormAll(sents.first.tokens);
+    expect(map.containsKey('Bus'), isTrue);
+    expect(map.containsKey('bus'), isTrue);
+    expect(map['Er'], isNotEmpty);
   });
 }

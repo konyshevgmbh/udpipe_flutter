@@ -1,0 +1,16 @@
+# Large binary model files — download separately, see README
+assets/models/*.udpipe
+
+# UDPipe C++ source submodule — compiled by the build system, not needed on pub.dev
+native/udpipe_src/
+
+# Build artefacts
+build/
+.dart_tool/
+
+# Compiled WASM — rebuild with: make wasm  or  .\build_wasm.ps1
+web/udpipe_ffi.js
+web/udpipe_ffi.wasm
+
+# IDE / dev tooling
+.vscode/
