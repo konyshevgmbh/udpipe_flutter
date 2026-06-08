@@ -1,0 +1,4 @@
+[submodule "native/udpipe_src"]
+	path = native/udpipe_src
+	url = https://github.com/ufal/udpipe.git
+	branch = master

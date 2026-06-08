@@ -1,0 +1,198 @@
+import 'dart:ffi';
+import 'dart:io';
+import 'dart:isolate';
+import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' hide Size;
+import 'udpipe_bindings.dart';
+import 'udpipe_types.dart';
+
+class UDPipeService {
+  UDPipeService._();
+  static final UDPipeService _instance = UDPipeService._();
+  factory UDPipeService() => _instance;
+
+  UDPipeBindings? _bindings;
+  Pointer?        _handle;
+  String?         _loadedModel;
+  Future<void>    _initFuture = Future.value();
+
+  final ValueNotifier<UDPipeStatus> status = ValueNotifier(UDPipeStatus.idle);
+  String? loadError;
+
+  bool get isAvailable => _handle != null && _handle != nullptr;
+  Future<void> get whenReady => _initFuture;
+
+  Future<void> init({String modelId = 'hdt'}) {
+    if (_loadedModel == modelId && isAvailable) return Future.value();
+    _initFuture = _load(modelId);
+    return _initFuture;
+  }
+
+  Future<void> _load(String modelId) async {
+    if (isAvailable) dispose();
+    loadError = null;
+    status.value = UDPipeStatus.loading;
+
+    _bindings ??= UDPipeBindings.open();
+    if (_bindings == null) {
+      loadError = 'Native library not available on this platform.';
+      status.value = UDPipeStatus.error;
+      return;
+    }
+
+    final info = udpipeModelById(modelId);
+    final dllPath = _resolveDllPath();
+    if (dllPath == null) {
+      loadError = 'Platform not supported.';
+      status.value = UDPipeStatus.error;
+      return;
+    }
+
+    int? address;
+    if (Platform.isAndroid) {
+      final data = await rootBundle.load('assets/models/${info.fileName}');
+      final transferable = TransferableTypedData.fromList([data.buffer.asUint8List()]);
+      address = await Isolate.run(() {
+        final bytes = transferable.materialize().asUint8List();
+        return _loadModelFromMemoryInIsolate(dllPath, bytes);
+      });
+    } else {
+      final modelPath = _resolveModelPath(info.fileName);
+      if (modelPath == null || !File(modelPath).existsSync()) {
+        loadError = 'Model file not found: $modelPath\n'
+            'Download models from https://ufal.mff.cuni.cz/udpipe/1/models '
+            'and place them in the app\'s assets/models/ folder.';
+        status.value = UDPipeStatus.error;
+        return;
+      }
+      address = await Isolate.run(() => _loadModelInIsolate(dllPath, modelPath));
+    }
+
+    if (address == null || address == 0) {
+      loadError = 'Failed to load model.';
+      status.value = UDPipeStatus.error;
+      return;
+    }
+
+    _handle = Pointer.fromAddress(address);
+    _loadedModel = modelId;
+    status.value = UDPipeStatus.ready;
+  }
+
+  UDPipeResult process(String text) {
+    if (!isAvailable) return UDPipeResult.empty;
+    final conllu = _bindings!.process(_handle!, text);
+    if (conllu == null || conllu.isEmpty) return UDPipeResult.empty;
+    return buildUDPipeResult(conllu);
+  }
+
+  List<UDPipeResult> processBatchPerBlock(List<String> blocks) {
+    if (!isAvailable) return List.filled(blocks.length, UDPipeResult.empty);
+    final conllu = _bindings!.process(_handle!, blocks.join('\n\n'));
+    if (conllu == null || conllu.isEmpty) return List.filled(blocks.length, UDPipeResult.empty);
+    return splitUDPipeResultByBlocks(conllu, blocks);
+  }
+
+  Future<List<UDPipeResult>> processAllBlocksAsync(List<String> blocks) async {
+    if (!isAvailable) return List.filled(blocks.length, UDPipeResult.empty);
+    if (kIsWeb) return processBatchPerBlock(blocks);
+    final dllPath = _resolveDllPath();
+    if (dllPath == null) return List.filled(blocks.length, UDPipeResult.empty);
+    final handleAddr = _handle!.address;
+    return Isolate.run(() => _processAllBlocksInIsolate(dllPath, handleAddr, blocks));
+  }
+
+  void dispose() {
+    if (_handle != null && _handle != nullptr) {
+      _bindings?.free(_handle!);
+    }
+    _handle = null;
+    _loadedModel = null;
+  }
+
+  static String? _resolveModelPath(String fileName) {
+    if (Platform.isWindows || Platform.isLinux) {
+      final exeDir = File(Platform.resolvedExecutable).parent.path;
+      return '$exeDir/data/flutter_assets/assets/models/$fileName';
+    }
+    return null;
+  }
+
+  static String? _resolveDllPath() {
+    if (Platform.isWindows) {
+      final exeDir = File(Platform.resolvedExecutable).parent.path;
+      return '$exeDir/udpipe_flutter.dll';
+    }
+    if (Platform.isLinux) {
+      final exeDir = File(Platform.resolvedExecutable).parent.path;
+      return '$exeDir/lib/libudpipe_flutter.so';
+    }
+    if (Platform.isAndroid) return 'libudpipe_flutter.so';
+    if (Platform.isMacOS) {
+      final exeDir = File(Platform.resolvedExecutable).parent.path;
+      return '$exeDir/../Frameworks/libudpipe_flutter.dylib';
+    }
+    return null;
+  }
+}
+
+int? _loadModelInIsolate(String dllPath, String modelPath) {
+  try {
+    final lib = DynamicLibrary.open(dllPath);
+    final loadFn = lib.lookupFunction<
+      Pointer Function(Pointer<Utf8>),
+      Pointer Function(Pointer<Utf8>)
+    >('udpipe_load');
+    final pathPtr = modelPath.toNativeUtf8();
+    final handle = loadFn(pathPtr);
+    malloc.free(pathPtr);
+    if (handle == nullptr) return null;
+    return handle.address;
+  } catch (_) {
+    return null;
+  }
+}
+
+int? _loadModelFromMemoryInIsolate(String dllPath, Uint8List bytes) {
+  try {
+    final lib = DynamicLibrary.open(dllPath);
+    final loadFn = lib.lookupFunction<
+      Pointer Function(Pointer<Uint8>, Size),
+      Pointer Function(Pointer<Uint8>, int)
+    >('udpipe_load_memory');
+    final ptr = malloc<Uint8>(bytes.length);
+    ptr.asTypedList(bytes.length).setAll(0, bytes);
+    final handle = loadFn(ptr, bytes.length);
+    malloc.free(ptr);
+    if (handle == nullptr) return null;
+    return handle.address;
+  } catch (_) {
+    return null;
+  }
+}
+
+List<UDPipeResult> _processAllBlocksInIsolate(
+    String dllPath, int handleAddr, List<String> blocks) {
+  try {
+    final lib = DynamicLibrary.open(dllPath);
+    final processFn = lib.lookupFunction<
+        Pointer<Utf8> Function(Pointer, Pointer<Utf8>),
+        Pointer<Utf8> Function(Pointer, Pointer<Utf8>)>('udpipe_process');
+    final freeStrFn = lib.lookupFunction<
+        Void Function(Pointer<Utf8>),
+        void Function(Pointer<Utf8>)>('udpipe_free_str');
+
+    final handle = Pointer.fromAddress(handleAddr);
+    final textPtr = blocks.join('\n\n').toNativeUtf8();
+    final outPtr = processFn(handle, textPtr);
+    malloc.free(textPtr);
+
+    if (outPtr == nullptr) return List.filled(blocks.length, UDPipeResult.empty);
+    final conllu = outPtr.toDartString();
+    freeStrFn(outPtr);
+    return splitUDPipeResultByBlocks(conllu, blocks);
+  } catch (_) {
+    return List.filled(blocks.length, UDPipeResult.empty);
+  }
+}
