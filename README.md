@@ -33,7 +33,17 @@ flutter run -d linux           # Linux desktop
 flutter run -d macos           # macOS desktop
 flutter run                    # Android (device or emulator)
 ```
+## pub.dev
 
+**[https://pub.dev/packages/udpipe_flutter](https://pub.dev/packages/udpipe_flutter)**
+
+---
+
+## Live Demo
+
+**[https://konyshevgmbh.github.io/udpipe_flutter/](https://konyshevgmbh.github.io/udpipe_flutter/)**
+
+---
 ### Web (WASM)
 
 Build the WebAssembly module first, then run on Chrome:
