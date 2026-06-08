@@ -119,8 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       onChanged: _onModelChanged,
                     ),
                     const SizedBox(width: 12),
-                    _StatusBadge(status: status, error: _svc.loadError),
-                    const Spacer(),
+                    Flexible(child: _StatusBadge(status: status, error: _svc.loadError)),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: _processing ? null : _analyze,
                       icon: _processing

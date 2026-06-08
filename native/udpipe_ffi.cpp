@@ -2,6 +2,7 @@
 // One opaque handle = (model* + pipeline*).
 // All strings are UTF-8. Caller frees output with udpipe_free_str().
 
+#include <cstdint>
 #include <cstring>
 #include <sstream>
 #include <string>

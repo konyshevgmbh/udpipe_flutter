@@ -173,6 +173,8 @@ jobs:
   build-web:
     name: Web (WASM)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         # No submodules needed for web (WASM is pre-built)
