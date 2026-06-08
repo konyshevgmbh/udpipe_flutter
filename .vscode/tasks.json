@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build WASM (Docker)",
+      "detail": "Compiles native/udpipe_ffi.cpp → web/udpipe_ffi.wasm via emscripten/emsdk",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/build_wasm.ps1"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Flutter run web",
+      "detail": "Run on Chrome (requires WASM — build it first with 'Build WASM (Docker)')",
+      "type": "shell",
+      "command": "flutter",
+      "args": ["run", "-d", "chrome"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build WASM + run web",
+      "detail": "Rebuild web/udpipe_ffi.wasm, then launch on Chrome",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Build WASM (Docker)", "Flutter run web"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Flutter run Windows",
+      "detail": "Run on Windows desktop",
+      "type": "shell",
+      "command": "flutter",
+      "args": ["run", "-d", "windows"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    }
+  ]
+}
