@@ -23,6 +23,15 @@ Native FFI on desktop and mobile. WebAssembly via [Emscripten](https://emscripte
 - 50+ pre-trained language models available from [ÚFAL](https://ufal.mff.cuni.cz/udpipe/1/models)
 - Async batch processing keeps the UI thread free
 
+## Live Demo
+
+**[https://konyshevgmbh.github.io/udpipe_flutter/](https://konyshevgmbh.github.io/udpipe_flutter/)**
+
+
+## pub.dev
+
+**[https://pub.dev/packages/udpipe_flutter](https://pub.dev/packages/udpipe_flutter)**
+
 ## Getting Started
 
 ```bash
@@ -33,14 +42,6 @@ flutter run -d linux           # Linux desktop
 flutter run -d macos           # macOS desktop
 flutter run                    # Android (device or emulator)
 ```
-## pub.dev
-
-**[https://pub.dev/packages/udpipe_flutter](https://pub.dev/packages/udpipe_flutter)**
-
-
-## Live Demo
-
-**[https://konyshevgmbh.github.io/udpipe_flutter/](https://konyshevgmbh.github.io/udpipe_flutter/)**
 
 ### Web (WASM)
 
