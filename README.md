@@ -1,6 +1,6 @@
 # UDPipe Flutter
 
-NLP tokenization, POS tagging and dependency parsing using [UDPipe 1](https://ufal.mff.cuni.cz/udpipe/1), built with Flutter.
+NLP tokenization, POS tagging and dependency parsing using [UDPipe 1](https://ufal.mff.cuni.cz/udpipe/1) [UDPipe 1 github](https://github.com/ufal/udpipe), built with Flutter.
 
 Native FFI on desktop and mobile. WebAssembly via [Emscripten](https://emscripten.org/) on the web.
 
