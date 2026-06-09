@@ -37,13 +37,11 @@ flutter run                    # Android (device or emulator)
 
 **[https://pub.dev/packages/udpipe_flutter](https://pub.dev/packages/udpipe_flutter)**
 
----
 
 ## Live Demo
 
 **[https://konyshevgmbh.github.io/udpipe_flutter/](https://konyshevgmbh.github.io/udpipe_flutter/)**
 
----
 ### Web (WASM)
 
 Build the WebAssembly module first, then run on Chrome:
