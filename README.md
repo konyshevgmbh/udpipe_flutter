@@ -12,8 +12,8 @@ Native FFI on desktop and mobile. WebAssembly via [Emscripten](https://emscripte
 | Web      | ✅ |
 | Windows  | ✅ |
 | Linux    | ✅ |
-| macOS    | ✅ |
-| iOS      | 🚧 planned |
+| macOS    | 🚧 Built but untested |
+| iOS      | 🚧 Built but untested |
 
 ## Features
 
