@@ -78,10 +78,15 @@ final result = svc.process('Er steigt aus dem Bus aus.');
 
 for (final sentence in result.sentences) {
   for (final token in sentence.tokens) {
-    print('${token.form}  ${token.upos}  ${token.lemma}');
+    // form → base form (lemma)  [POS tag]
+    print('${token.form} → ${token.lemma}  [${token.upos}]');
+    // Er → er  [PRON]
+    // steigt → steigen  [VERB]
+    // Bus → Bus  [NOUN]
   }
   for (final sv in sentence.sepVerbs) {
     print('sep.verb: ${sv.particle}+${sv.verbForm} → ${sv.fullLemma}');
+    // sep.verb: aus+steigt → aussteigen
   }
 }
 

@@ -18,6 +18,15 @@ class UDToken {
   /// [id] of the syntactic head token; 0 means root.
   final int    head;
 
+  /// Grammatical gender from FEATS: "Masc", "Fem", "Neut", or null.
+  final String? gender;
+
+  /// Grammatical number from FEATS: "Sing", "Plur", or null.
+  final String? number;
+
+  /// Degree of comparison from FEATS: "Pos", "Cmp", "Sup", or null.
+  final String? degree;
+
   const UDToken({
     required this.id,
     required this.form,
@@ -25,7 +34,27 @@ class UDToken {
     required this.upos,
     required this.deprel,
     required this.head,
+    this.gender,
+    this.number,
+    this.degree,
   });
+
+  /// Parses Gender, Number, and Degree from a FEATS string in one pass,
+  /// e.g. "Case=Nom|Gender=Masc|Number=Sing|Degree=Pos".
+  static ({String? gender, String? number, String? degree}) parseFeats(String feats) {
+    if (feats == '_') return (gender: null, number: null, degree: null);
+    String? gender, number, degree;
+    for (final part in feats.split('|')) {
+      final idx = part.indexOf('=');
+      if (idx == -1) continue;
+      switch (part.substring(0, idx)) {
+        case 'Gender': gender = part.substring(idx + 1);
+        case 'Number': number = part.substring(idx + 1);
+        case 'Degree': degree = part.substring(idx + 1);
+      }
+    }
+    return (gender: gender, number: number, degree: degree);
+  }
 }
 
 /// A German separable verb detected in a sentence
@@ -59,6 +88,7 @@ List<UDToken> parseConllu(String conllu) {
     if (p[0].contains('-') || p[0].contains('.')) continue;
     final id = int.tryParse(p[0]);
     if (id == null) continue;
+    final f = UDToken.parseFeats(p[5]);
     tokens.add(UDToken(
       id:     id,
       form:   p[1],
@@ -66,6 +96,9 @@ List<UDToken> parseConllu(String conllu) {
       upos:   p[3],
       deprel: p[7],
       head:   int.tryParse(p[6]) ?? 0,
+      gender: f.gender,
+      number: f.number,
+      degree: f.degree,
     ));
   }
   return tokens;
@@ -125,6 +158,7 @@ List<({String text, List<UDToken> tokens})> parseConlluSentences(String conllu) 
       if (p[0].contains('-') || p[0].contains('.')) continue;
       final id = int.tryParse(p[0]);
       if (id == null) continue;
+      final f = UDToken.parseFeats(p[5]);
       current.add(UDToken(
         id:     id,
         form:   p[1],
@@ -132,6 +166,9 @@ List<({String text, List<UDToken> tokens})> parseConlluSentences(String conllu) 
         upos:   p[3],
         deprel: p[7],
         head:   int.tryParse(p[6]) ?? 0,
+        gender: f.gender,
+        number: f.number,
+        degree: f.degree,
       ));
     }
   }
