@@ -2,8 +2,9 @@
 
 * Fixed pub.dev documentation score: resolved dartdoc library-name conflict,
   excluded demo-app files from public API, added missing dartdoc comments.
-* Fixed pub.dev static analysis score: committed `assets/models/` placeholder
+* Fixed pub.dev static analysis score: added `assets/models/README.md`
   so the declared asset directory exists in the published package.
+* `assets/models/README.md` documents where to download UDPipe model files.
 
 ## 0.1.1
 
