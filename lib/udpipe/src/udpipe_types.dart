@@ -36,6 +36,7 @@ class UDSentenceResult {
     required this.tokens,
   });
 
+  /// An empty sentence result used as a safe default.
   static const empty = UDSentenceResult(text: '', byFormAll: {}, sepVerbs: [], tokens: []);
 }
 
@@ -46,6 +47,7 @@ class UDPipeResult {
 
   const UDPipeResult({required this.sentences});
 
+  /// An empty result used as a safe default when no model is loaded.
   static const empty = UDPipeResult(sentences: []);
 }
 

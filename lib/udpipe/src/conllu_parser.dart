@@ -79,6 +79,7 @@ class SepVerb {
 
 // ── Parser ─────────────────────────────────────────────────────────────────────
 
+/// Parses a single-sentence CoNLL-U string into a flat list of [UDToken]s.
 List<UDToken> parseConllu(String conllu) {
   final tokens = <UDToken>[];
   for (final line in conllu.split('\n')) {

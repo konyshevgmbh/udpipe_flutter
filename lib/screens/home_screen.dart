@@ -1,3 +1,6 @@
+/// @nodoc
+library;
+
 import 'package:flutter/material.dart';
 import '../udpipe/udpipe_flutter.dart';
 

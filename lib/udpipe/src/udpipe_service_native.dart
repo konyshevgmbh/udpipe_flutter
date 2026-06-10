@@ -107,6 +107,7 @@ class UDPipeService {
     return buildUDPipeResult(conllu);
   }
 
+  /// Processes [blocks] synchronously, returning one [UDPipeResult] per block.
   List<UDPipeResult> processBatchPerBlock(List<String> blocks) {
     if (!isAvailable) return List.filled(blocks.length, UDPipeResult.empty);
     final conllu = _bindings!.process(_handle!, blocks.join('\n\n'));
@@ -125,6 +126,7 @@ class UDPipeService {
     return Isolate.run(() => _processAllBlocksInIsolate(dllPath, handleAddr, blocks));
   }
 
+  /// Frees the native model handle. Call before loading a different model.
   void dispose() {
     if (_handle != null && _handle != nullptr) {
       _bindings?.free(_handle!);

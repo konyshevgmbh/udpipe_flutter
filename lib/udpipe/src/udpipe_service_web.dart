@@ -33,12 +33,20 @@ class UDPipeService {
   String? _loadedModel;
   Future<void> _initFuture = Future.value();
 
+  /// Current loading state. Listen to this notifier to react to state changes.
   final ValueNotifier<UDPipeStatus> status = ValueNotifier(UDPipeStatus.idle);
+
+  /// Human-readable error message when [status] is [UDPipeStatus.error].
   String? loadError;
 
+  /// Whether a model is loaded and [process] can be called.
   bool get isAvailable => _handle != 0;
+
+  /// Completes when the current [init] call finishes (or immediately if idle).
   Future<void> get whenReady => _initFuture;
 
+  /// Loads the model identified by [modelId] (one of [kUdpipeModels]).
+  /// Returns immediately if the requested model is already loaded.
   Future<void> init({String modelId = 'hdt'}) {
     if (_loadedModel == modelId && isAvailable) return Future.value();
     _initFuture = _load(modelId);
@@ -82,6 +90,7 @@ class UDPipeService {
     status.value = UDPipeStatus.ready;
   }
 
+  /// Runs UDPipe on [text] and returns the parsed result.
   UDPipeResult process(String text) {
     if (!isAvailable) return UDPipeResult.empty;
     final conllu = _jsProcess(_handle.toJS, text.toJS)?.toDart;
@@ -89,6 +98,7 @@ class UDPipeService {
     return buildUDPipeResult(conllu);
   }
 
+  /// Processes [blocks] synchronously, returning one [UDPipeResult] per block.
   List<UDPipeResult> processBatchPerBlock(List<String> blocks) {
     if (!isAvailable) return List.filled(blocks.length, UDPipeResult.empty);
     final conllu = _jsProcess(_handle.toJS, blocks.join('\n\n').toJS)?.toDart;
@@ -96,6 +106,7 @@ class UDPipeService {
     return splitUDPipeResultByBlocks(conllu, blocks);
   }
 
+  /// Processes [blocks] in micro-task batches to keep the UI responsive.
   Future<List<UDPipeResult>> processAllBlocksAsync(List<String> blocks) async {
     if (!isAvailable) return List.filled(blocks.length, UDPipeResult.empty);
     const kBatch = 5;
@@ -111,6 +122,7 @@ class UDPipeService {
     return all;
   }
 
+  /// Frees the WASM model handle. Call before loading a different model.
   void dispose() {
     if (_handle != 0) {
       _jsFree(_handle.toJS);

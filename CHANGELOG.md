@@ -1,3 +1,10 @@
+## 0.1.2
+
+* Fixed pub.dev documentation score: resolved dartdoc library-name conflict,
+  excluded demo-app files from public API, added missing dartdoc comments.
+* Fixed pub.dev static analysis score: committed `assets/models/` placeholder
+  so the declared asset directory exists in the published package.
+
 ## 0.1.1
 
 * Added `gender`, `number`, and `degree` fields to `UDToken` (parsed from the CoNLL-U FEATS column).
