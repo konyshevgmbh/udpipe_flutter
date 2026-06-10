@@ -1,4 +1,4 @@
-## 0.1.2
+## 0.1.3
 
 * Fixed pub.dev documentation score: resolved dartdoc library-name conflict,
   excluded demo-app files from public API, added missing dartdoc comments.
