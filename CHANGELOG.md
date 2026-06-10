@@ -1,3 +1,8 @@
+## 0.1.1
+
+* Added `gender`, `number`, and `degree` fields to `UDToken` (parsed from the CoNLL-U FEATS column).
+* Added package example (`example/example.dart`).
+
 ## 0.1.0+1
 
 * Initial release.
