@@ -1,6 +1,6 @@
 # UDPipe Flutter
 
-NLP tokenization, POS tagging and dependency parsing using [UDPipe 1](https://ufal.mff.cuni.cz/udpipe/1), built with Flutter.
+NLP tokenization, POS tagging and dependency parsing using [UDPipe 1](https://ufal.mff.cuni.cz/udpipe/1) [UDPipe 1 github](https://github.com/ufal/udpipe), built with Flutter.
 
 Native FFI on desktop and mobile. WebAssembly via [Emscripten](https://emscripten.org/) on the web.
 
@@ -12,8 +12,8 @@ Native FFI on desktop and mobile. WebAssembly via [Emscripten](https://emscripte
 | Web      | ✅ |
 | Windows  | ✅ |
 | Linux    | ✅ |
-| macOS    | ✅ |
-| iOS      | 🚧 planned |
+| macOS    | 🚧 Built but untested |
+| iOS      | 🚧 Built but untested |
 
 ## Features
 
@@ -22,6 +22,15 @@ Native FFI on desktop and mobile. WebAssembly via [Emscripten](https://emscripte
 - Separable verb detection for German
 - 50+ pre-trained language models available from [ÚFAL](https://ufal.mff.cuni.cz/udpipe/1/models)
 - Async batch processing keeps the UI thread free
+
+## Live Demo
+
+**[https://konyshevgmbh.github.io/udpipe_flutter/](https://konyshevgmbh.github.io/udpipe_flutter/)**
+
+
+## pub.dev
+
+**[https://pub.dev/packages/udpipe_flutter](https://pub.dev/packages/udpipe_flutter)**
 
 ## Getting Started
 
@@ -33,17 +42,7 @@ flutter run -d linux           # Linux desktop
 flutter run -d macos           # macOS desktop
 flutter run                    # Android (device or emulator)
 ```
-## pub.dev
 
-**[https://pub.dev/packages/udpipe_flutter](https://pub.dev/packages/udpipe_flutter)**
-
----
-
-## Live Demo
-
-**[https://konyshevgmbh.github.io/udpipe_flutter/](https://konyshevgmbh.github.io/udpipe_flutter/)**
-
----
 ### Web (WASM)
 
 Build the WebAssembly module first, then run on Chrome:
