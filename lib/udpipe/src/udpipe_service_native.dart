@@ -39,31 +39,36 @@ class UDPipeService {
 
   /// Loads the model identified by [modelId] (one of [kUdpipeModels]).
   /// Returns immediately if the requested model is already loaded.
-  Future<void> init({String modelId = 'hdt'}) {
+  Future<void> init({String modelId = 'german-gsd'}) {
     if (_loadedModel == modelId && isAvailable) return Future.value();
     _initFuture = _load(modelId);
     return _initFuture;
   }
 
-  Future<void> _load(String modelId) async {
-    if (isAvailable) dispose();
-    loadError = null;
-    status.value = UDPipeStatus.loading;
+  /// Loads a model from an arbitrary Flutter asset path.
+  ///
+  /// Example: `await svc.initFromAsset('assets/models/russian-syntagrus.udpipe')`
+  ///
+  /// Returns immediately if [assetPath] is already loaded.
+  Future<void> initFromAsset(String assetPath) {
+    if (_loadedModel == assetPath && isAvailable) return Future.value();
+    _initFuture = _loadFromAsset(assetPath);
+    return _initFuture;
+  }
 
-    _bindings ??= UDPipeBindings.open();
-    if (_bindings == null) {
-      loadError = 'Native library not available on this platform.';
-      status.value = UDPipeStatus.error;
-      return;
-    }
+  /// Loads a model directly from [bytes] (e.g. downloaded at runtime).
+  ///
+  /// Always reloads — no caching by content.
+  Future<void> initFromBytes(Uint8List bytes) {
+    _initFuture = _loadFromBytesImpl(bytes, cacheKey: null);
+    return _initFuture;
+  }
+
+  Future<void> _load(String modelId) async {
+    final dllPath = await _prepareNative();
+    if (dllPath == null) return;
 
     final info = udpipeModelById(modelId);
-    final dllPath = _resolveDllPath();
-    if (dllPath == null) {
-      loadError = 'Platform not supported.';
-      status.value = UDPipeStatus.error;
-      return;
-    }
 
     int? address;
     if (Platform.isAndroid) {
@@ -85,14 +90,83 @@ class UDPipeService {
       address = await Isolate.run(() => _loadModelInIsolate(dllPath, modelPath));
     }
 
+    _finalise(address, cacheKey: modelId);
+  }
+
+  Future<void> _loadFromAsset(String assetPath) async {
+    final dllPath = await _prepareNative();
+    if (dllPath == null) return;
+
+    int? address;
+    if (Platform.isAndroid) {
+      final ByteData data;
+      try {
+        data = await rootBundle.load(assetPath);
+      } catch (_) {
+        loadError = 'Asset not found: $assetPath';
+        status.value = UDPipeStatus.error;
+        return;
+      }
+      final transferable = TransferableTypedData.fromList([data.buffer.asUint8List()]);
+      address = await Isolate.run(() {
+        final bytes = transferable.materialize().asUint8List();
+        return _loadModelFromMemoryInIsolate(dllPath, bytes);
+      });
+    } else {
+      final filePath = _resolveAssetPath(assetPath);
+      if (filePath == null || !File(filePath).existsSync()) {
+        loadError = 'Asset file not found: $assetPath';
+        status.value = UDPipeStatus.error;
+        return;
+      }
+      address = await Isolate.run(() => _loadModelInIsolate(dllPath, filePath));
+    }
+
+    _finalise(address, cacheKey: assetPath);
+  }
+
+  Future<void> _loadFromBytesImpl(Uint8List bytes, {required String? cacheKey}) async {
+    final dllPath = await _prepareNative();
+    if (dllPath == null) return;
+
+    final transferable = TransferableTypedData.fromList([bytes]);
+    final address = await Isolate.run(() {
+      final b = transferable.materialize().asUint8List();
+      return _loadModelFromMemoryInIsolate(dllPath, b);
+    });
+    _finalise(address, cacheKey: cacheKey);
+  }
+
+  /// Resets state, checks bindings and dll. Returns dll path or null on error.
+  Future<String?> _prepareNative() async {
+    if (isAvailable) dispose();
+    loadError = null;
+    status.value = UDPipeStatus.loading;
+
+    _bindings ??= UDPipeBindings.open();
+    if (_bindings == null) {
+      loadError = 'Native library not available on this platform.';
+      status.value = UDPipeStatus.error;
+      return null;
+    }
+
+    final dllPath = _resolveDllPath();
+    if (dllPath == null) {
+      loadError = 'Platform not supported.';
+      status.value = UDPipeStatus.error;
+      return null;
+    }
+    return dllPath;
+  }
+
+  void _finalise(int? address, {required String? cacheKey}) {
     if (address == null || address == 0) {
       loadError = 'Failed to load model.';
       status.value = UDPipeStatus.error;
       return;
     }
-
     _handle = Pointer.fromAddress(address);
-    _loadedModel = modelId;
+    _loadedModel = cacheKey;
     status.value = UDPipeStatus.ready;
   }
 
@@ -135,10 +209,17 @@ class UDPipeService {
     _loadedModel = null;
   }
 
-  static String? _resolveModelPath(String fileName) {
+  static String? _resolveModelPath(String fileName) =>
+      _resolveAssetPath('assets/models/$fileName');
+
+  static String? _resolveAssetPath(String assetPath) {
     if (Platform.isWindows || Platform.isLinux) {
       final exeDir = File(Platform.resolvedExecutable).parent.path;
-      return '$exeDir/data/flutter_assets/assets/models/$fileName';
+      return '$exeDir/data/flutter_assets/$assetPath';
+    }
+    if (Platform.isMacOS) {
+      final exeDir = File(Platform.resolvedExecutable).parent.path;
+      return '$exeDir/../Resources/flutter_assets/$assetPath';
     }
     return null;
   }

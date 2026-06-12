@@ -1,3 +1,18 @@
+## 0.2.0
+
+* Expanded model catalog: `kUdpipeModels` now lists all ~94 UDPipe 1 (UD 2.5) models across 60+
+  languages, not just the two German models.
+* Added `UDPipeService.initFromAsset(String assetPath)` — load any `.udpipe` file from the Flutter
+  asset bundle by path (not limited to `assets/models/`).
+* Added `UDPipeService.initFromBytes(Uint8List bytes)` — load a model from raw bytes, e.g. after
+  downloading it at runtime.
+* **Breaking:** `UDPipeModelInfo.id` is now the full treebank name (e.g. `'german-gsd'` instead of
+  `'gsd'`). Legacy short ids `'gsd'` and `'hdt'` are still accepted by `udpipeModelById` and
+  `UDPipeService.init` for backward compatibility.
+* **Breaking:** `UDPipeModelInfo.size` field removed.
+* `UDPipeModelInfo.fileName` is now a computed getter (`'$id.udpipe'`) instead of a stored field.
+* Default `modelId` in `UDPipeService.init` changed from `'hdt'` to `'german-gsd'`.
+
 ## 0.1.3
 
 * Fixed pub.dev documentation score: resolved dartdoc library-name conflict,

@@ -47,9 +47,28 @@ class UDPipeService {
 
   /// Loads the model identified by [modelId] (one of [kUdpipeModels]).
   /// Returns immediately if the requested model is already loaded.
-  Future<void> init({String modelId = 'hdt'}) {
+  Future<void> init({String modelId = 'german-gsd'}) {
     if (_loadedModel == modelId && isAvailable) return Future.value();
     _initFuture = _load(modelId);
+    return _initFuture;
+  }
+
+  /// Loads a model from an arbitrary Flutter asset path.
+  ///
+  /// Example: `await svc.initFromAsset('assets/models/russian-syntagrus.udpipe')`
+  ///
+  /// Returns immediately if [assetPath] is already loaded.
+  Future<void> initFromAsset(String assetPath) {
+    if (_loadedModel == assetPath && isAvailable) return Future.value();
+    _initFuture = _loadFromAsset(assetPath);
+    return _initFuture;
+  }
+
+  /// Loads a model directly from [bytes] (e.g. downloaded at runtime).
+  ///
+  /// Always reloads — no caching by content.
+  Future<void> initFromBytes(Uint8List bytes) {
+    _initFuture = _loadFromBytesImpl(bytes, cacheKey: null);
     return _initFuture;
   }
 
@@ -58,15 +77,7 @@ class UDPipeService {
     loadError = null;
     status.value = UDPipeStatus.loading;
 
-    try {
-      if (!_jsIsReady().toDart) {
-        await _jsInit().toDart;
-      }
-    } catch (e) {
-      loadError = 'WASM init failed: $e';
-      status.value = UDPipeStatus.error;
-      return;
-    }
+    if (!await _ensureWasm()) return;
 
     final info = udpipeModelById(modelId);
     final ByteData data;
@@ -78,15 +89,57 @@ class UDPipeService {
       return;
     }
 
-    final h = _jsLoadMemory(data.buffer.asUint8List().toJS).toDartDouble.toInt();
+    _finalise(data.buffer.asUint8List(), cacheKey: modelId);
+  }
+
+  Future<void> _loadFromAsset(String assetPath) async {
+    if (isAvailable) dispose();
+    loadError = null;
+    status.value = UDPipeStatus.loading;
+
+    if (!await _ensureWasm()) return;
+
+    final ByteData data;
+    try {
+      data = await rootBundle.load(assetPath);
+    } catch (_) {
+      loadError = 'Asset not found: $assetPath';
+      status.value = UDPipeStatus.error;
+      return;
+    }
+
+    _finalise(data.buffer.asUint8List(), cacheKey: assetPath);
+  }
+
+  Future<void> _loadFromBytesImpl(Uint8List bytes, {required String? cacheKey}) async {
+    if (isAvailable) dispose();
+    loadError = null;
+    status.value = UDPipeStatus.loading;
+
+    if (!await _ensureWasm()) return;
+    _finalise(bytes, cacheKey: cacheKey);
+  }
+
+  Future<bool> _ensureWasm() async {
+    try {
+      if (!_jsIsReady().toDart) await _jsInit().toDart;
+      return true;
+    } catch (e) {
+      loadError = 'WASM init failed: $e';
+      status.value = UDPipeStatus.error;
+      return false;
+    }
+  }
+
+  void _finalise(Uint8List bytes, {required String? cacheKey}) {
+    final h = _jsLoadMemory(bytes.toJS).toDartDouble.toInt();
     if (h == 0) {
       loadError = 'udpipe_load_memory returned 0.';
       status.value = UDPipeStatus.error;
       return;
     }
-
     _handle = h.toDouble();
-    _loadedModel = modelId;
+    _loadedModel = cacheKey;
     status.value = UDPipeStatus.ready;
   }
 

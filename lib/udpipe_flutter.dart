@@ -3,7 +3,7 @@
 /// Usage:
 /// ```dart
 /// final svc = UDPipeService();
-/// await svc.init(modelId: 'gsd');  // or 'hdt'
+/// await svc.init(modelId: 'german-gsd'); // see kUdpipeModels for all ids
 /// final result = svc.process('Er steigt aus dem Bus aus.');
 /// for (final sentence in result.sentences) {
 ///   for (final token in sentence.tokens) {

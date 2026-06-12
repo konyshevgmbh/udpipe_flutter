@@ -55,12 +55,21 @@ Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 ### Model files
 
-Download models from [ufal.mff.cuni.cz/udpipe/1/models](https://ufal.mff.cuni.cz/udpipe/1/models) and place them in `assets/models/`:
+Download models from [ufal.mff.cuni.cz/udpipe/1/models](https://ufal.mff.cuni.cz/udpipe/1/models)
+and place the `.udpipe` file in `assets/models/` (or any path inside your Flutter assets).
 
-| Model ID | File | Size |
-|----------|------|------|
-| `gsd` | `german-gsd.udpipe` | ~20 MB |
-| `hdt` | `german-hdt.udpipe` | ~60 MB |
+All ~94 models from UDPipe 1 (UD 2.5) are listed in [`kUdpipeModels`](lib/udpipe/src/udpipe_types.dart)
+and in [`assets/models/README.md`](assets/models/README.md).
+
+A few popular ones:
+
+| Model ID | Language | File |
+|---|---|---|
+| `german-gsd` | German | `german-gsd.udpipe` (~20 MB) |
+| `german-hdt` | German | `german-hdt.udpipe` (~60 MB) |
+| `english-ewt` | English | `english-ewt.udpipe` |
+| `russian-syntagrus` | Russian | `russian-syntagrus.udpipe` |
+| `french-gsd` | French | `french-gsd.udpipe` |
 
 ## Library API
 
@@ -69,15 +78,21 @@ import 'package:udpipe_flutter/udpipe_flutter.dart';
 
 final svc = UDPipeService();
 
-// Load a model once per session
-await svc.init(modelId: 'gsd');
+// 1. Load from kUdpipeModels catalog (file must be in assets/models/)
+await svc.init(modelId: 'german-gsd');
 
-// Process text (synchronous)
+// 2. Load from any asset path
+await svc.initFromAsset('assets/models/russian-syntagrus.udpipe');
+
+// 3. Load from bytes (e.g. downloaded at runtime)
+final bytes = await downloadModel();
+await svc.initFromBytes(bytes);
+
+// Process text (synchronous, call from any isolate)
 final result = svc.process('Er steigt aus dem Bus aus.');
 
 for (final sentence in result.sentences) {
   for (final token in sentence.tokens) {
-    // form → base form (lemma)  [POS tag]
     print('${token.form} → ${token.lemma}  [${token.upos}]');
     // Er → er  [PRON]
     // steigt → steigen  [VERB]
@@ -89,8 +104,8 @@ for (final sentence in result.sentences) {
   }
 }
 
-// Async batch — runs in a background isolate
-final results = await svc.processAllBlocksAsync(['Block one.', 'Block two.']);
+// Async batch — keeps UI thread free (background isolate on native, micro-tasks on web)
+final results = await svc.processAllBlocksAsync(['First paragraph.', 'Second paragraph.']);
 ```
 
 ## Architecture
