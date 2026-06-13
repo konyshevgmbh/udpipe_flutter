@@ -23353,7 +23353,7 @@ vW:function vW(a){this.a=a},
 AJ:function AJ(a,b){var _=this
 _.d=a
 _.e=b
-_.f="german-gsd"
+_.f="gsd"
 _.r=null
 _.w=!1
 _.c=_.a=null},
