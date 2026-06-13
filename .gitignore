@@ -1,0 +1,2 @@
+# Rebuild with: make wasm  or  .\build_wasm.ps1
+# Then copy web/udpipe_ffi.js and web/udpipe_ffi.wasm here.

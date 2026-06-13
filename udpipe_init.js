@@ -6,38 +6,28 @@
   var _mod = null;
 
   window.udpipeWasmInit = function () {
-    // Fast-fail: verify the .wasm file is actually served before polling.
-    // Without this check a missing build silently times out after 30 s.
-    return fetch('udpipe_ffi.wasm', { method: 'HEAD' })
-      .then(function (r) {
-        if (!r.ok) {
-          throw new Error(
-            'udpipe_ffi.wasm not found (HTTP ' + r.status + ').\n' +
-            'Build it first:  make wasm   or   .\\build_wasm.ps1'
-          );
-        }
-      })
-      .then(function () {
-        return new Promise(function (resolve, reject) {
-          var waited = 0;
-          var maxWait = 15000;
-          var pollMs = 200;
+    return new Promise(function (resolve, reject) {
+      var waited = 0;
+      var maxWait = 30000;
+      var pollMs = 200;
 
-          (function tryInit() {
-            if (_mod !== null) return resolve();
-            if (typeof createUDPipeModule === 'function') {
-              createUDPipeModule()
-                .then(function (m) { _mod = m; resolve(); })
-                .catch(reject);
-            } else if (waited >= maxWait) {
-              reject(new Error('createUDPipeModule not defined after ' + maxWait + 'ms'));
-            } else {
-              waited += pollMs;
-              setTimeout(tryInit, pollMs);
-            }
-          })();
-        });
-      });
+      (function tryInit() {
+        if (_mod !== null) return resolve();
+        if (typeof createUDPipeModule === 'function') {
+          createUDPipeModule()
+            .then(function (m) { _mod = m; resolve(); })
+            .catch(reject);
+        } else if (waited >= maxWait) {
+          reject(new Error(
+            'udpipe_ffi.js not available after ' + maxWait + 'ms.\n' +
+            'Build it first:  make wasm   or   .\\build_wasm.ps1'
+          ));
+        } else {
+          waited += pollMs;
+          setTimeout(tryInit, pollMs);
+        }
+      })();
+    });
   };
 
   window.udpipeWasmIsReady = function () { return _mod !== null; };
