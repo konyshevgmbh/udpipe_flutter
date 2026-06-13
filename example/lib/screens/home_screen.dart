@@ -112,10 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(width: 8),
                     DropdownButton<String>(
                       value: _modelId,
-                      items: kUdpipeModels.map((m) => DropdownMenuItem(
-                        value: m.id,
-                        child: Text(m.label),
-                      )).toList(),
+                      items: const [
+                        DropdownMenuItem(value: 'gsd', child: Text('GSD (20 MB)')),
+                        DropdownMenuItem(value: 'hdt', child: Text('HDT (60 MB)')),
+                      ],
                       onChanged: _onModelChanged,
                     ),
                     const SizedBox(width: 12),
