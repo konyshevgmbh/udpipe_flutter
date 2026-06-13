@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _ctrl = TextEditingController(text: _kSampleTexts.first);
   final _svc  = UDPipeService();
 
-  String _modelId = 'german-gsd';
+  String _modelId = 'gsd';
   UDPipeResult? _result;
   bool _processing = false;
 
