@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build UDPipe to WebAssembly using Emscripten.
-# Output: web/udpipe_ffi.js + web/udpipe_ffi.wasm
+# Output: web/udpipe_ffi.js + web/udpipe_ffi.wasm  (then copied to example/web/)
 #
 # Requirements: emsdk activated (emcc in PATH)
 #   https://emscripten.org/docs/getting_started/downloads.html

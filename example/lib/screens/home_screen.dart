@@ -1,8 +1,5 @@
-/// @nodoc
-library;
-
 import 'package:flutter/material.dart';
-import '../udpipe/udpipe_flutter.dart';
+import 'package:udpipe_flutter/udpipe_flutter.dart';
 
 const _kSampleTexts = [
   'Er steigt aus dem Bus aus.',
@@ -303,7 +300,6 @@ class _UposBadge extends StatelessWidget {
   final String upos;
   const _UposBadge({required this.upos});
 
-  // (bg, fg) pairs — vivid enough for both dark and light themes
   static const _palette = <String, (Color, Color)>{
     'VERB':  (Color(0xFF1B5E20), Color(0xFF69F0AE)),
     'AUX':   (Color(0xFF1B5E20), Color(0xFF69F0AE)),

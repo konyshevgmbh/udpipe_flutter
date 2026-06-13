@@ -1,5 +1,5 @@
 # Build UDPipe WASM via Docker (emscripten/emsdk image).
-# Output: web/udpipe_ffi.js + web/udpipe_ffi.wasm
+# Output: web/udpipe_ffi.js + web/udpipe_ffi.wasm  (then synced to example/web/)
 #
 # Usage:
 #   .\build_wasm.ps1
@@ -24,4 +24,4 @@ if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
-Write-Host "Done: web/udpipe_ffi.js + web/udpipe_ffi.wasm" -ForegroundColor Green
+Write-Host "Done: web/udpipe_ffi.js + web/udpipe_ffi.wasm (synced to example/web/)" -ForegroundColor Green

@@ -58,7 +58,7 @@ pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
 add_subdirectory("runner")
 
 # UDPipe native FFI library
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../native" udpipe_native_build)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../native" udpipe_native_build)
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)
